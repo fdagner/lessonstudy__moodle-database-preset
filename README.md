@@ -8,7 +8,7 @@ Users can record and compare student observations for a lesson study.
 
 ## Getting started
 
-Download the [release file](https://github.com/fdagner/lessonstudy_moodle-database-preset-/releases). 
+Download the [release file](https://github.com/fdagner/lessonstudy_moodle-database-preset/releases). 
 Create a "Database" activity in Moodle and then upload the ZIP file.
 
 ## Language Support
