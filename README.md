@@ -1,6 +1,6 @@
 # Meeting Poll
 
-lesson study is a preset for the Moodle activity database.
+Meeting Poll is a preset for the Moodle activity database.
 
 ## Description
 
