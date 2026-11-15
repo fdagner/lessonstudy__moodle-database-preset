@@ -1,0 +1,16 @@
+#  lesson study
+
+lesson study is a preset for the Moodle activity database.
+
+## Description
+
+Users can record and compare student observations for a lesson study.
+
+## Getting started
+
+Download the [release file](https://github.com/fdagner/lessonstudy__moodle-database-preset/releases). 
+Create a "Database" activity in Moodle and then upload the ZIP file.
+
+## Language Support
+
+The preset is available in German, but there is not so much to translate. The template can easily be adapted. 
