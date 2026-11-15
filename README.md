@@ -20,6 +20,16 @@ This preset supports the observation phase of that process. Teacher teams can re
 - Changes are continuously saved in the browser (`localStorage`). If the session times out or the browser crashes, unsaved changes are **automatically restored** the next time the page is opened (with an undo option).
 - A **keep-alive** call invokes `core_session_touch` every 4 minutes (Moodle 4.1+) while the page is visible – so users are not logged out automatically while working on their entry.
 
+## Screenshots
+
+### Einzelansicht (Beobachtungen erfassen)
+
+![Einzelansicht](screenshots/einzelansicht.png)
+
+### Listenansicht (kombiniertes Diagramm)
+
+![Listenansicht](screenshots/listenansicht.png)
+
 ## Installation
 
 **As a plugin (recommended):** download the release ZIP from the [releases page](https://github.com/fdagner/lessonstudy__moodle-database-preset/releases), extract it and copy the `lessonstudy` folder to `moodle/mod/data/preset/`. Afterwards, select the "Lesson Study" preset when creating a new Database activity.
