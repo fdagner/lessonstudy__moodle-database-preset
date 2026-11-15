@@ -1,0 +1,291 @@
+        </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ---------- Hilfsfunktion für SVG-Elemente ----------
+    function svgEl(name, attrs) {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', name);
+        for (const key in attrs) { el.setAttribute(key, attrs[key]); }
+        return el;
+    }
+
+    // ---------- Keep-Alive: verhindert die automatische Abmeldung ----------
+    // (Guard, damit es bei mehrfachem Einbinden nur einmal läuft)
+    if (!window.lessonstudyKeepAlive) {
+        window.lessonstudyKeepAlive = true;
+        if (window.M && M.cfg && M.cfg.sesskey) {
+            let inFlight = false;
+            const touchSession = () => {
+                if (document.visibilityState !== 'visible' || inFlight) { return; }
+                inFlight = true;
+                fetch(M.cfg.wwwroot + '/lib/ajax/service.php?sesskey=' + encodeURIComponent(M.cfg.sesskey) + '&info=core_session_touch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([{ index: 0, methodname: 'core_session_touch', args: {} }]),
+                    credentials: 'same-origin'
+                }).catch(() => {}).finally(() => { inFlight = false; });
+            };
+            setInterval(touchSession, 4 * 60 * 1000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') { touchSession(); }
+            });
+        }
+    }
+
+    // ---------- Kombiniertes Diagramm über alle Einträge ----------
+    const combinedSvg = document.getElementById('lessonstudy-combinedChart');
+    const height = 600;
+    const margin = { top: 60, right: 100, bottom: 60, left: 70 };
+    const plotHeight = height - margin.top - margin.bottom;
+
+    const plotGroup = svgEl('g', { transform: `translate(${margin.left},${margin.top})` });
+    const gridGroup = svgEl('g');
+    const pointsGroup = svgEl('g');
+    const xAxisGroup = svgEl('g');
+    const yAxisGroup = svgEl('g');
+    const legendGroup = svgEl('g');
+    plotGroup.append(gridGroup, pointsGroup, xAxisGroup, yAxisGroup, legendGroup);
+    combinedSvg.appendChild(plotGroup);
+
+    function timeToMinutes(timeStr) {
+        const parts = timeStr.split(':');
+        return Number(parts[0]) * 60 + Number(parts[1]);
+    }
+
+    // ---------- Einträge aus der Tabelle sammeln ----------
+    const groups = [];
+    document.querySelectorAll('#lessonstudy-entryTableBody tr').forEach(row => {
+        const nameCell = row.querySelector('td:nth-child(1)');
+        const colorCell = row.querySelector('td:nth-child(2) code');
+        const jsonSpan = row.querySelector('td:nth-child(3) span.lessonstudy-observation');
+
+        if (nameCell && colorCell && jsonSpan) {
+            const name = nameCell.textContent.trim();
+            const color = colorCell.textContent.trim();
+            let observations = [];
+            try {
+                const jsonText = jsonSpan.textContent.trim();
+                if (jsonText && jsonText !== '[]') { observations = JSON.parse(jsonText); }
+            } catch (e) { console.error('Ungültiges JSON in ' + name, e); }
+
+            row.querySelector('td:nth-child(3)').innerHTML = observations.length;
+
+            if (observations.length > 0) { groups.push({ name, color, observations }); }
+        }
+    });
+
+    let expandedCluster = null;
+
+    // ---------- Detail-Modal füllen und öffnen ----------
+    function openObservationDetail(obs) {
+        document.getElementById('lessonstudy-detailName').value = obs.name;
+        document.getElementById('lessonstudy-detailTime').value = obs.time;
+        document.getElementById('lessonstudy-detailSlider').value = obs.engagement;
+        document.getElementById('lessonstudy-detailValue').textContent = obs.engagement;
+        document.getElementById('lessonstudy-detailText').value = obs.text || '';
+
+        // Modal öffnen (Moodle-sicher, ohne Bootstrap-Objekt)
+        const btn = document.createElement('button');
+        btn.setAttribute('data-bs-toggle', 'modal');
+        btn.setAttribute('data-bs-target', '#lessonstudy-detailModal');
+        document.body.appendChild(btn);
+        btn.click();
+        document.body.removeChild(btn);
+    }
+
+    if (groups.length > 0) {
+        // ---------- Zeitbereich + Skalierung ----------
+        const allMinutes = [];
+        groups.forEach(group => {
+            group.observations.forEach(obs => { allMinutes.push(timeToMinutes(obs.time)); });
+        });
+        const minMinutes = Math.floor((Math.min(...allMinutes) - 5) / 5) * 5;
+        const maxMinutes = Math.ceil((Math.max(...allMinutes) + 5) / 5) * 5;
+        const totalMinutes = maxMinutes - minMinutes;
+        const plotWidth = Math.max(totalMinutes * 25, 840); // 25 px pro Minute, gleiche Skalierung wie in der Einzelansicht
+
+        combinedSvg.setAttribute('width', plotWidth + margin.left + margin.right);
+
+        const xScale = m => (m - minMinutes) / totalMinutes * plotWidth;
+        const yScale = v => plotHeight - ((v + 5) / 110) * plotHeight;
+
+        // ---------- Gitter + Achsen ----------
+        xAxisGroup.setAttribute('transform', `translate(0,${plotHeight})`);
+        for (let m = minMinutes; m <= maxMinutes; m += 5) {
+            const x = xScale(m);
+            gridGroup.appendChild(svgEl('line', { x1: x, y1: 0, x2: x, y2: plotHeight, stroke: '#eef1f5' }));
+            if (m % 10 === 0) {
+                const h = String(Math.floor(m / 60)).padStart(2, '0');
+                const mm = String(m % 60).padStart(2, '0');
+                const txt = svgEl('text', { x, y: 20, 'text-anchor': 'middle', 'font-size': 11, fill: '#9ca3af' });
+                txt.textContent = `${h}:${mm}`;
+                xAxisGroup.appendChild(txt);
+            }
+        }
+        for (let p = 0; p <= 100; p += 10) {
+            const y = yScale(p);
+            gridGroup.appendChild(svgEl('line', { x1: 0, y1: y, x2: plotWidth, y2: y, stroke: '#eef1f5' }));
+            const txt = svgEl('text', { x: -10, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: '#9ca3af' });
+            txt.textContent = p;
+            yAxisGroup.appendChild(txt);
+        }
+        const yLabel = svgEl('text', {
+            transform: 'rotate(-90)',
+            x: -plotHeight / 2 - margin.top,
+            y: -45,
+            'text-anchor': 'middle',
+            'font-size': 13,
+            fill: '#6b7280'
+        });
+        yLabel.textContent = 'Engagement (%)';
+        combinedSvg.appendChild(yLabel);
+
+        // ---------- Verbindungslinien pro Gruppe (liegen automatisch hinter den Punkten) ----------
+        groups.forEach(group => {
+            const sortedObs = [...group.observations].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+            for (let i = 0; i < sortedObs.length - 1; i++) {
+                const a = sortedObs[i];
+                const b = sortedObs[i + 1];
+                pointsGroup.appendChild(svgEl('line', {
+                    x1: xScale(timeToMinutes(a.time)), y1: yScale(a.engagement),
+                    x2: xScale(timeToMinutes(b.time)), y2: yScale(b.engagement),
+                    stroke: group.color, 'stroke-width': 2, 'stroke-dasharray': '6 4',
+                    opacity: 0.55, 'pointer-events': 'none'
+                }));
+            }
+        });
+
+        // ---------- Punkte / Cluster ----------
+        const clusters = {}; // Gruppierung nach exakt gleicher Position: Zeit + Engagement
+        groups.forEach(group => {
+            group.observations.forEach(obs => {
+                const key = obs.time + '|' + obs.engagement;
+                (clusters[key] = clusters[key] || []).push({ ...obs, color: group.color, name: group.name });
+            });
+        });
+
+        Object.values(clusters).forEach(clusterObs => {
+            const first = clusterObs[0];
+            const cx = xScale(timeToMinutes(first.time));
+            const cy = yScale(first.engagement);
+
+            if (clusterObs.length === 1) {
+                const circle = svgEl('circle', { cx, cy, r: 12, fill: first.color, stroke: '#fff', 'stroke-width': 2 });
+                circle.style.cursor = 'pointer';
+                circle.addEventListener('mouseenter', () => circle.setAttribute('r', 14));
+                circle.addEventListener('mouseleave', () => circle.setAttribute('r', 12));
+                circle.addEventListener('click', e => { e.stopPropagation(); openObservationDetail(first); });
+                pointsGroup.appendChild(circle);
+                return;
+            }
+
+            // Cluster: roter Kreis mit Anzahl, Klick → ausklappen
+            const clusterCircle = svgEl('circle', { cx, cy, r: 16, fill: '#dc3545', opacity: 0.95 });
+            clusterCircle.style.cursor = 'pointer';
+            const countText = svgEl('text', { x: cx, y: cy + 5, 'text-anchor': 'middle', fill: '#fff', 'font-weight': 'bold', 'font-size': 13 });
+            countText.textContent = clusterObs.length;
+            countText.style.pointerEvents = 'none';
+
+            clusterCircle.addEventListener('click', e => {
+                e.stopPropagation();
+                if (expandedCluster) { expandedCluster.remove(); expandedCluster = null; }
+
+                expandedCluster = svgEl('g');
+                pointsGroup.appendChild(expandedCluster);
+
+                const radius = 60;
+                clusterObs.forEach((obs, i) => {
+                    const angle = (i / clusterObs.length) * 2 * Math.PI - Math.PI / 2; // oben beginnen
+                    const p = svgEl('circle', {
+                        cx: cx + radius * Math.cos(angle),
+                        cy: cy + radius * Math.sin(angle),
+                        r: 12, fill: obs.color, stroke: '#fff', 'stroke-width': 2, opacity: 0.95
+                    });
+                    p.style.cursor = 'pointer';
+                    p.addEventListener('mouseenter', () => p.setAttribute('r', 14));
+                    p.addEventListener('mouseleave', () => p.setAttribute('r', 12));
+                    p.addEventListener('click', ev => { ev.stopPropagation(); openObservationDetail(obs); });
+                    expandedCluster.appendChild(p);
+                });
+
+                const close = ev => {
+                    if (expandedCluster && !expandedCluster.contains(ev.target) && ev.target !== clusterCircle) {
+                        expandedCluster.remove();
+                        expandedCluster = null;
+                        document.removeEventListener('click', close);
+                    }
+                };
+                setTimeout(() => document.addEventListener('click', close), 0);
+            });
+
+            pointsGroup.appendChild(clusterCircle);
+            pointsGroup.appendChild(countText);
+        });
+
+        // ---------- Legende ----------
+        const legendRowHeight = 40;
+        const maxItemsPerRow = 6;
+        const numRows = Math.ceil(groups.length / maxItemsPerRow);
+        const legendHeight = numRows * legendRowHeight + 20;
+
+        combinedSvg.setAttribute('height', height + legendHeight);
+        legendGroup.setAttribute('transform', `translate(0,${plotHeight + 60})`);
+
+        groups.forEach((group, i) => {
+            const x = (i % maxItemsPerRow) * 160;
+            const y = Math.floor(i / maxItemsPerRow) * legendRowHeight;
+
+            const rect = svgEl('rect', { x, y, width: 20, height: 20, rx: 4, fill: group.color });
+            const text = svgEl('text', { x: x + 30, y: y + 15, 'font-size': 13, fill: '#374151' });
+            text.textContent = `${group.name} (${group.observations.length})`;
+            legendGroup.appendChild(rect);
+            legendGroup.appendChild(text);
+        });
+    } else {
+        // ---------- Leeres Diagramm ----------
+        combinedSvg.setAttribute('width', 900);
+        const noData = svgEl('text', { x: 450, y: 300, 'text-anchor': 'middle', 'font-size': 16, fill: '#9ca3af' });
+        noData.textContent = 'Noch keine Beobachtungen vorhanden';
+        combinedSvg.appendChild(noData);
+    }
+
+    // ---------- SVG-Export ----------
+    document.getElementById('lessonstudy-exportSVG').addEventListener('click', () => {
+        if (expandedCluster) { expandedCluster.remove(); expandedCluster = null; }
+
+        const serializer = new XMLSerializer();
+        let source = serializer.serializeToString(combinedSvg);
+
+        // xmlns ergänzen, falls fehlt (für externe Programme)
+        if (!source.includes('xmlns="http://www.w3.org/2000/svg"')) {
+            source = source.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+        }
+
+        // Systemschrift einbetten, damit der Export überall gleich aussieht
+        const style = `
+            <style type="text/css">
+                text {
+                    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+                    font-size: 12px;
+                }
+                line[stroke="#eef1f5"] { stroke: #e5e7eb; }
+            </style>`;
+        source = source.replace('</svg>', style + '</svg>');
+
+        const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'alle-beobachtungen-engagement-diagramm.svg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+}());
+</script>

@@ -1,0 +1,338 @@
+<div id="lessonstudy-importarea" hidden>[[json]]</div>
+
+<div class="lessonstudy-container">
+    ##actionsmenu##
+    <h1 class="lessonstudy-title mb-4">Beobachtung</h1>
+
+    <div class="lessonstudy-actions">
+        <button type="button" id="lessonstudy-exportSVG" class="btn btn-secondary">
+            <i class="fa-solid fa-download"></i> Diagramm exportieren
+        </button>
+    </div>
+
+    <div id="lessonstudy-chartContainer" class="lessonstudy-card">
+        <svg id="lessonstudy-chart" height="500"></svg>
+        <div id="lessonstudy-noData" class="d-none">
+            <i class="fa-regular fa-chart-line"></i> Noch keine Beobachtungen vorhanden.
+        </div>
+    </div>
+
+    <div class="lessonstudy-card mt-4">
+        <table class="table lessonstudy-table" id="lessonstudy-observationTable">
+            <thead>
+                <tr>
+                    <th>Uhrzeit</th>
+                    <th>Engagement</th>
+                    <th>Notiz</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="lessonstudy-notes mt-4">
+        <p>[[notes]]</p>
+    </div>
+</div>
+
+<!-- Modal: Beobachtung ansehen (schreibgeschützt) -->
+<div class="modal fade" id="lessonstudy-observationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Uhrzeit der Beobachtung</label>
+                    <input type="text" id="lessonstudy-timeInput" class="form-control" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Engagement</label>
+                    <div class="d-flex align-items-center">
+                        <input type="range" class="form-range me-3" min="0" max="100" step="10" id="lessonstudy-engagementSlider" hidden>
+                        <span id="lessonstudy-engagementValue" class="lessonstudy-sliderValue">50</span> %
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">Notiz</label>
+                    <textarea id="lessonstudy-textInput" class="form-control" rows="5" readonly></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ---------- Hilfsfunktion für SVG-Elemente ----------
+    function svgEl(name, attrs) {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', name);
+        for (const key in attrs) { el.setAttribute(key, attrs[key]); }
+        return el;
+    }
+
+    // ---------- Keep-Alive: verhindert die automatische Abmeldung ----------
+    // (Guard, damit es bei mehrfachem Einbinden nur einmal läuft)
+    if (!window.lessonstudyKeepAlive) {
+        window.lessonstudyKeepAlive = true;
+        if (window.M && M.cfg && M.cfg.sesskey) {
+            let inFlight = false;
+            const touchSession = () => {
+                if (document.visibilityState !== 'visible' || inFlight) { return; }
+                inFlight = true;
+                fetch(M.cfg.wwwroot + '/lib/ajax/service.php?sesskey=' + encodeURIComponent(M.cfg.sesskey) + '&info=core_session_touch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([{ index: 0, methodname: 'core_session_touch', args: {} }]),
+                    credentials: 'same-origin'
+                }).catch(() => {}).finally(() => { inFlight = false; });
+            };
+            setInterval(touchSession, 4 * 60 * 1000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') { touchSession(); }
+            });
+        }
+    }
+
+    // ---------- Diagramm-Grundgerüst ----------
+    const svg = document.getElementById('lessonstudy-chart');
+    const height = 500;
+    const margin = { top: 40, right: 60, bottom: 50, left: 60 };
+    const plotHeight = height - margin.top - margin.bottom;
+
+    const plotGroup = svgEl('g', { transform: `translate(${margin.left},${margin.top})` });
+    const gridGroup = svgEl('g');
+    const pointsGroup = svgEl('g');
+    const xAxisGroup = svgEl('g');
+    const yAxisGroup = svgEl('g');
+    plotGroup.append(gridGroup, pointsGroup, xAxisGroup, yAxisGroup);
+    svg.appendChild(plotGroup);
+
+    const tableBody = document.querySelector('#lessonstudy-observationTable tbody');
+    const noDataMsg = document.getElementById('lessonstudy-noData');
+
+    let observations = [];
+    let expandedCluster = null;
+
+    function timeToMinutes(timeStr) {
+        const parts = timeStr.split(':');
+        return Number(parts[0]) * 60 + Number(parts[1]);
+    }
+
+    function fillModal(index) {
+        const obs = observations[index];
+        document.getElementById('lessonstudy-timeInput').value = obs.time;
+        document.getElementById('lessonstudy-engagementSlider').value = obs.engagement;
+        document.getElementById('lessonstudy-engagementValue').textContent = obs.engagement;
+        document.getElementById('lessonstudy-textInput').value = obs.text || '';
+    }
+
+    function openObservationModal(index) {
+        fillModal(index);
+        const btn = document.createElement('button');
+        btn.setAttribute('data-bs-toggle', 'modal');
+        btn.setAttribute('data-bs-target', '#lessonstudy-observationModal');
+        document.body.appendChild(btn);
+        btn.click();
+        document.body.removeChild(btn);
+    }
+    window.openObservationModal = openObservationModal;
+
+    function updateTable(sorted) {
+        tableBody.innerHTML = '';
+        noDataMsg.classList.toggle('d-none', observations.length > 0);
+        if (observations.length === 0) { return; }
+
+        sorted.forEach(item => {
+            const note = item.obs.text ? item.obs.text.replace(/</g, '&lt;') : '–';
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.obs.time}</td>
+                <td>${item.obs.engagement} %</td>
+                <td>${note}</td>
+                <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                            data-bs-toggle="modal" data-bs-target="#lessonstudy-observationModal"
+                            onclick="openObservationModal(${item.index})">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </td>`;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // ---------- Diagramm zeichnen ----------
+    function updateChart() {
+        gridGroup.innerHTML = '';
+        pointsGroup.innerHTML = '';
+        xAxisGroup.innerHTML = '';
+        yAxisGroup.innerHTML = '';
+        if (expandedCluster) { expandedCluster.remove(); expandedCluster = null; }
+
+        const sorted = observations
+            .map((obs, index) => ({ obs, index }))
+            .sort((a, b) => timeToMinutes(a.obs.time) - timeToMinutes(b.obs.time));
+
+        updateTable(sorted);
+
+        if (observations.length === 0) {
+            svg.setAttribute('width', 900);
+            return;
+        }
+
+        // Zeitbereich bestimmen
+        const minutes = observations.map(o => timeToMinutes(o.time));
+        const minMinutes = Math.floor((Math.min(...minutes) - 5) / 5) * 5;
+        const maxMinutes = Math.ceil((Math.max(...minutes) + 5) / 5) * 5;
+        const totalMinutes = maxMinutes - minMinutes;
+        const plotWidth = Math.max(totalMinutes * 25, 840); // 25 px pro Minute
+
+        svg.setAttribute('width', plotWidth + margin.left + margin.right);
+
+        const xScale = m => (m - minMinutes) / totalMinutes * plotWidth;
+        const yScale = v => plotHeight - ((v + 5) / 110) * plotHeight;
+
+        // Gitter + Achsenbeschriftung
+        xAxisGroup.setAttribute('transform', `translate(0,${plotHeight})`);
+        for (let m = minMinutes; m <= maxMinutes; m += 5) {
+            const x = xScale(m);
+            gridGroup.appendChild(svgEl('line', { x1: x, y1: 0, x2: x, y2: plotHeight, stroke: '#eef1f5' }));
+            if (m % 10 === 0) {
+                const h = String(Math.floor(m / 60)).padStart(2, '0');
+                const mm = String(m % 60).padStart(2, '0');
+                const txt = svgEl('text', { x, y: 20, 'text-anchor': 'middle', 'font-size': 11, fill: '#9ca3af' });
+                txt.textContent = `${h}:${mm}`;
+                xAxisGroup.appendChild(txt);
+            }
+        }
+        for (let p = 0; p <= 100; p += 10) {
+            const y = yScale(p);
+            gridGroup.appendChild(svgEl('line', { x1: 0, y1: y, x2: plotWidth, y2: y, stroke: '#eef1f5' }));
+            const txt = svgEl('text', { x: -10, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: '#9ca3af' });
+            txt.textContent = p;
+            yAxisGroup.appendChild(txt);
+        }
+        if (!svg.querySelector('text[data-ylabel]')) {
+            const yLabel = svgEl('text', {
+                transform: 'rotate(-90)',
+                x: -plotHeight / 2 - margin.top,
+                y: -40,
+                'text-anchor': 'middle',
+                'font-size': 12,
+                fill: '#6b7280',
+                'data-ylabel': 'true'
+            });
+            yLabel.textContent = 'Engagement (%)';
+            svg.appendChild(yLabel);
+        }
+
+        // Verbindungslinien zuerst zeichnen → liegen automatisch hinter den Punkten
+        for (let i = 0; i < sorted.length - 1; i++) {
+            const a = sorted[i].obs;
+            const b = sorted[i + 1].obs;
+            pointsGroup.appendChild(svgEl('line', {
+                x1: xScale(timeToMinutes(a.time)), y1: yScale(a.engagement),
+                x2: xScale(timeToMinutes(b.time)), y2: yScale(b.engagement),
+                stroke: '[[color]]', 'stroke-width': 2, 'stroke-dasharray': '6 4',
+                opacity: 0.55, 'pointer-events': 'none'
+            }));
+        }
+
+        // Punkte / Cluster
+        const groups = {};
+        observations.forEach((obs, i) => {
+            const key = obs.time + '|' + obs.engagement;
+            (groups[key] = groups[key] || []).push(i);
+        });
+
+        Object.values(groups).forEach(indices => {
+            const first = observations[indices[0]];
+            const cx = xScale(timeToMinutes(first.time));
+            const cy = yScale(first.engagement);
+
+            if (indices.length === 1) {
+                const c = svgEl('circle', { cx, cy, r: 12, fill: '[[color]]', stroke: '#fff', 'stroke-width': 2 });
+                c.style.cursor = 'pointer';
+                c.addEventListener('click', e => { e.stopPropagation(); openObservationModal(indices[0]); });
+                pointsGroup.appendChild(c);
+                return;
+            }
+
+            const cluster = svgEl('circle', { cx, cy, r: 16, fill: '#dc3545', opacity: 0.95 });
+            cluster.style.cursor = 'pointer';
+            const count = svgEl('text', { x: cx, y: cy + 5, 'text-anchor': 'middle', fill: '#fff', 'font-weight': 'bold', 'font-size': 13 });
+            count.textContent = indices.length;
+            count.style.pointerEvents = 'none';
+
+            cluster.addEventListener('click', e => {
+                e.stopPropagation();
+                if (expandedCluster) { expandedCluster.remove(); expandedCluster = null; }
+
+                expandedCluster = svgEl('g');
+                pointsGroup.appendChild(expandedCluster);
+
+                const radius = 60;
+                indices.forEach((idx, i) => {
+                    const angle = (i / indices.length) * 2 * Math.PI - Math.PI / 2; // oben beginnen
+                    const p = svgEl('circle', {
+                        cx: cx + radius * Math.cos(angle),
+                        cy: cy + radius * Math.sin(angle),
+                        r: 12, fill: '[[color]]', stroke: '#fff', 'stroke-width': 2, opacity: 0.95
+                    });
+                    p.style.cursor = 'pointer';
+                    p.addEventListener('click', ev => { ev.stopPropagation(); openObservationModal(idx); });
+                    expandedCluster.appendChild(p);
+                });
+
+                const close = ev => {
+                    if (!expandedCluster.contains(ev.target)) {
+                        expandedCluster.remove();
+                        expandedCluster = null;
+                        document.removeEventListener('click', close);
+                    }
+                };
+                setTimeout(() => document.addEventListener('click', close), 0);
+            });
+
+            pointsGroup.appendChild(cluster);
+            pointsGroup.appendChild(count);
+        });
+    }
+
+    // ---------- SVG-Export ----------
+    document.getElementById('lessonstudy-exportSVG').addEventListener('click', () => {
+        if (expandedCluster) { expandedCluster.remove(); expandedCluster = null; }
+        const serializer = new XMLSerializer();
+        const source = serializer.serializeToString(svg);
+        const blob = new Blob([source], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'engagement-diagramm.svg';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    // ---------- Laden: Daten aus dem versteckten [[json]]-Bereich ----------
+    const importArea = document.getElementById('lessonstudy-importarea');
+    if (importArea) {
+        const raw = importArea.textContent.trim();
+        if (raw && raw !== '[]') {
+            try {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) { observations = parsed; }
+            } catch (e) { console.error('Ungültiges JSON:', e); }
+        }
+    }
+
+    updateChart();
+}());
+</script>

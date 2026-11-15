@@ -1,0 +1,61 @@
+<div class="lessonstudy-container">
+    <h1 class="lessonstudy-title mb-4">Lesson Study</h1>
+
+    <div class="lessonstudy-actions">
+        <button type="button" id="lessonstudy-exportSVG" class="btn btn-secondary">
+            <i class="fa-solid fa-download"></i> Diagramm exportieren
+        </button>
+    </div>
+
+    <div id="lessonstudy-chartContainer" class="lessonstudy-card p-3">
+        <svg id="lessonstudy-combinedChart" height="600"></svg>
+    </div>
+
+    <!-- Modal: Details zu einer Beobachtung (schreibgeschützt) -->
+    <div class="modal fade" id="lessonstudy-detailModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Schülerin / Schüler</label>
+                        <input type="text" id="lessonstudy-detailName" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Uhrzeit der Beobachtung</label>
+                        <input type="text" id="lessonstudy-detailTime" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Engagement</label>
+                        <div class="d-flex align-items-center">
+                            <input type="range" class="form-range me-3" min="0" max="100" step="10" id="lessonstudy-detailSlider" hidden>
+                            <span id="lessonstudy-detailValue" class="lessonstudy-sliderValue"></span> %
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Notiz</label>
+                        <textarea id="lessonstudy-detailText" class="form-control" rows="5" readonly></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lessonstudy-card mt-4">
+        <table class="table lessonstudy-table" id="lessonstudy-observationTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Farbe</th>
+                    <th class="text-center">Beobachtungen</th>
+                    <th>Erstellt von</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="lessonstudy-entryTableBody">

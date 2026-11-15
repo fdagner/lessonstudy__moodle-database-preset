@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<preset>
+
+<description>Vorgabe "Lesson Study": Beobachtungen mit Uhrzeit, Engagement (0–100 %) und Notiz erfassen, als Diagramm in der Gruppenfarbe darstellen und als SVG exportieren. Änderungen werden automatisch zwischengespeichert.</description>
+
+<settings>
+<intro/>
+<comments>0</comments>
+<requiredentries>0</requiredentries>
+<requiredentriestoview>0</requiredentriestoview>
+<maxentries>0</maxentries>
+<rssarticles>0</rssarticles>
+<approval>0</approval>
+<manageapproved>1</manageapproved>
+<defaultsortdir>0</defaultsortdir>
+<defaultsort>0</defaultsort>
+</settings>
+
+<field>
+<type>text</type>
+<name>json</name>
+<required>0</required>
+<description>Interner Speicher für die Beobachtungen – bitte nicht manuell bearbeiten.</description>
+</field>
+
+<field>
+<type>text</type>
+<name>name</name>
+<required>0</required>
+<description>Name der Schülerin oder des Schülers, deren/dessen Beobachtungen hier erfasst werden.</description>
+</field>
+
+<field>
+<type>text</type>
+<name>color</name>
+<required>0</required>
+<description>Farbe der Gruppe; wird für die Punkte und Verbindungslinien im Diagramm verwendet (Hex-Code, z. B. #3399ff).</description>
+</field>
+
+<field>
+<type>textarea</type>
+<name>notes</name>
+<required>0</required>
+<description>Reflexion / Fazit zu den Beobachtungen (optional).</description>
+<param2>60</param2>
+<param3>35</param3>
+<param4>1</param4>
+<param5>0</param5>
+</field>
+
+</preset>

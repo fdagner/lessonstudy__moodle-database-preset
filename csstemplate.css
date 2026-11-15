@@ -1,0 +1,141 @@
+/* ============================================================
+   Lesson Study – Template-Styles
+   Heller, leichtgewichtiger, aufgeräumter Look.
+   Alle eigenen Klassen/IDs tragen das Präfix "lessonstudy-",
+   damit es keine Konflikte mit Moodle-eigenen Styles gibt.
+   ============================================================ */
+
+.lessonstudy-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Titel */
+.lessonstudy-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Feld-Labels */
+.lessonstudy-label {
+    font-size: .78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #6b7280;
+    margin-bottom: .25rem;
+}
+
+/* Hilfetexte unter Eingabefeldern */
+.lessonstudy-hint {
+    font-size: .8125rem;
+    color: #6b7280;
+    margin-top: .375rem;
+}
+
+/* Kopfbereich: Name + Farbe */
+.lessonstudy-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 3rem;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+}
+
+.lessonstudy-field { min-width: 240px; }
+
+.lessonstudy-colorpicker {
+    width: 3rem;
+    height: 2.25rem;
+    padding: .15rem;
+    border: 1px solid #e5e7eb;
+    border-radius: .5rem;
+    background: #fff;
+    cursor: pointer;
+}
+
+/* Karten-Look für Diagramm und Tabelle */
+.lessonstudy-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: .75rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+#lessonstudy-chartContainer {
+    position: relative;
+    overflow-x: auto;
+}
+
+#lessonstudy-chart { display: block; }
+
+/* Hinweis bei leerem Diagramm – zentriert über der Chart-Fläche */
+#lessonstudy-noData {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    color: #9ca3af;
+    font-size: .95rem;
+    text-align: center;
+    pointer-events: none;
+}
+
+/* Tabellen */
+.lessonstudy-table { margin-bottom: 0; }
+
+.lessonstudy-table thead th {
+    padding: .75rem 1rem;
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.lessonstudy-table tbody td {
+    padding: .65rem 1rem;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.lessonstudy-table tbody tr:last-child td { border-bottom: 0; }
+.lessonstudy-table tbody tr:hover td { background: #f9fafb; }
+
+/* Farb-Swatch in der Listenansicht */
+.lessonstudy-swatch {
+    display: inline-block;
+    width: 28px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, .15);
+    vertical-align: middle;
+}
+
+/* Engagement-Wert neben dem Slider */
+.lessonstudy-sliderValue {
+    font-weight: 600;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* Reflexion / Notizen */
+.lessonstudy-notes p { margin-bottom: 0; color: #374151; }
+
+/* Hinweis zum automatischen Zwischenspeichern */
+.lessonstudy-savehint {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .8125rem;
+    color: #6b7280;
+    margin-top: 1.5rem;
+}
+
+/* Abstand unter Aktions-Buttons */
+.lessonstudy-actions { margin-bottom: 1rem; }
