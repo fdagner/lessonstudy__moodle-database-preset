@@ -4,14 +4,16 @@ Lesson Study is a preset for the Moodle activity module **Database**.
 
 ## Description
 
-Students can record and evaluate classroom observations:
+Lesson Study (Japanese: *jugyō kenkyū*) is a form of collaborative lesson development originating from Japan: a team of 3–6 teachers plans a "research lesson" together. While one teacher delivers the lesson, the other team members systematically observe how the students learn – often focusing on selected case students. The observations are then discussed and used to further develop the teaching.
 
-- **Name** of the observed student and **colour** of the group
+This preset supports the observation phase of that process. Teacher teams can record and evaluate student observations:
+
+- **Name** of the observed student and **colour** of the observation group
 - **Observations** with time, engagement (0–100 %) and an optional note – recorded via a modal dialog
 - **Engagement chart** in the group colour: dots, dashed connection lines; simultaneous observations are grouped as a cluster showing a count (click to expand)
-- **List view** with a combined chart across all entries, including a legend
+- **List view** with a combined chart across all observation groups, including a legend
 - **SVG export** of the chart (single view and list view)
-- **Reflection / summary** as a text field below the chart
+- **Reflection / summary** as a text field below the chart, e. g. for the joint evaluation
 
 ## Auto-saving & session protection
 
