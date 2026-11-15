@@ -1,29 +1,29 @@
 # Lesson Study
 
-Lesson Study ist eine Vorgabe (Preset) für das Moodle-Aktivitätsmodul **Datenbank**.
+Lesson Study is a preset for the Moodle activity module **Database**.
 
-## Beschreibung
+## Description
 
-Schüler:innen können Unterrichtsbeobachtungen erfassen und auswerten:
+Students can record and evaluate classroom observations:
 
-- **Name** der beobachteten Schülerin / des beobachteten Schülers sowie **Farbe** der Gruppe
-- **Beobachtungen** mit Uhrzeit, Engagement (0–100 %) und optionale Notiz – über ein Modal-Fenster erfassbar
-- **Engagement-Diagramm** in der Gruppenfarbe: Punkte, gestrichelte Verbindungslinien, gleichzeitige Beobachtungen werden als Cluster mit Anzahl zusammengefasst (Klick zum Ausklappen)
-- **Listenansicht** mit kombiniertem Diagramm über alle Einträge inkl. Legende
-- **SVG-Export** des Diagramms (Einzelansicht und Listenansicht)
-- **Reflexion / Fazit** als Textfeld unter dem Diagramm
+- **Name** of the observed student and **colour** of the group
+- **Observations** with time, engagement (0–100 %) and an optional note – recorded via a modal dialog
+- **Engagement chart** in the group colour: dots, dashed connection lines; simultaneous observations are grouped as a cluster showing a count (click to expand)
+- **List view** with a combined chart across all entries, including a legend
+- **SVG export** of the chart (single view and list view)
+- **Reflection / summary** as a text field below the chart
 
-## Automatisches Zwischenspeichern & Session-Schutz
+## Auto-saving & session protection
 
-- Änderungen werden laufend im Browser (`localStorage`) zwischengespeichert. Nach einem Session-Timeout oder Browser-Absturz werden nicht gespeicherte Änderungen beim nächsten Öffnen **automatisch wiederhergestellt** (mit Rückgängig-Möglichkeit).
-- Ein **Keep-Alive** ruft alle 4 Minuten `core_session_touch` auf (Moodle 4.1+), solange die Seite sichtbar ist – so wird der Nutzer beim längeren Bearbeiten nicht automatisch abgemeldet.
+- Changes are continuously saved in the browser (`localStorage`). If the session times out or the browser crashes, unsaved changes are **automatically restored** the next time the page is opened (with an undo option).
+- A **keep-alive** call invokes `core_session_touch` every 4 minutes (Moodle 4.1+) while the page is visible – so users are not logged out automatically while working on their entry.
 
 ## Installation
 
-**Als Plugin (empfohlen):** Release-ZIP von der [Releases-Seite](https://github.com/fdagner/lessonstudy__moodle-database-preset/releases) herunterladen, entpacken und den Ordner `lessonstudy` nach `moodle/mod/data/preset/` kopieren. Danach beim Anlegen einer Datenbank-Aktivität die Vorgabe „Lesson Study" auswählen.
+**As a plugin (recommended):** download the release ZIP from the [releases page](https://github.com/fdagner/lessonstudy__moodle-database-preset/releases), extract it and copy the `lessonstudy` folder to `moodle/mod/data/preset/`. Afterwards, select the "Lesson Study" preset when creating a new Database activity.
 
-**Als Vorgabe importieren:** Alternativ kann die ZIP-Datei direkt in Moodle hochgeladen werden: Datenbank-Aktivität → **Vorgaben (Presets) → Vorgabe importieren**.
+**As an imported preset:** alternatively, upload the ZIP file directly in Moodle: Database activity → **Presets → Import preset**.
 
-## Sprachunterstützung
+## Language support
 
-Die Vorgabe ist auf Deutsch. Die Templates lassen sich leicht anpassen und übersetzen.
+The preset is available in German. The templates can easily be adapted and translated.
