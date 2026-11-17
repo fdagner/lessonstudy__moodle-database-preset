@@ -1,23 +1,29 @@
 <style>
-/* Das Moodle-Feld für den Farbcode dient nur der Anzeige (JS synchronisiert es) */
+/* Das Moodle-Feld für den Farbcode bleibt im Hintergrund – der Farbpicker synchronisiert es (JS) */
 #[[color#id]] {
-    opacity: .5;
-    pointer-events: none;
+    display: none;
 }
 </style>
 
 <div class="lessonstudy-container">
     <div class="lessonstudy-header">
         <div class="lessonstudy-field">
-            <div class="lessonstudy-label">Name</div>
+            <div class="lessonstudy-label">Schülername
+                <span class="lessonstudy-help" tabindex="0" role="button" aria-label="Hilfe: Schülername">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span class="lessonstudy-helpbubble">Hier trägst du den Namen der Schülerin oder des Schülers ein, deren bzw. dessen Lernverhalten beobachtet wird.</span>
+                </span>
+            </div>
             [[name]]
-            <div class="lessonstudy-hint">Hier trägst du den Namen der Schülerin oder des Schülers ein.</div>
         </div>
         <div class="lessonstudy-field">
-            <div class="lessonstudy-label">Farbe wählen</div>
+            <div class="lessonstudy-label">Farbe wählen
+                <span class="lessonstudy-help" tabindex="0" role="button" aria-label="Hilfe: Farbe">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span class="lessonstudy-helpbubble">Die gewählte Farbe wird für die Punkte und Verbindungslinien im Diagramm verwendet.</span>
+                </span>
+            </div>
             <input type="color" id="lessonstudy-colorpicker" class="lessonstudy-colorpicker">
-            <div class="lessonstudy-hint">Aktueller Farbcode: [[color]]</div>
-            <div class="lessonstudy-hint">Die gewählte Farbe wird für die Punkte und Verbindungslinien im Diagramm verwendet.</div>
         </div>
     </div>
 
@@ -55,8 +61,13 @@
     </div>
 
     <div class="lessonstudy-notes mt-4">
+        <div class="lessonstudy-label">Notizen
+            <span class="lessonstudy-help" tabindex="0" role="button" aria-label="Hilfe: Notizen">
+                <i class="fa-solid fa-circle-question"></i>
+                <span class="lessonstudy-helpbubble">Hier kannst du deine Reflexion bzw. dein Fazit zu den Beobachtungen festhalten (optional).</span>
+            </span>
+        </div>
         <p>[[notes]]</p>
-        <div class="lessonstudy-hint">Hier kannst du deine Reflexion / dein Fazit zu den Beobachtungen festhalten (optional).</div>
     </div>
 
     <div class="lessonstudy-savehint">
@@ -75,18 +86,36 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label for="lessonstudy-timeInput" class="form-label">Uhrzeit der Beobachtung (Format HH:MM)</label>
+                    <div class="d-flex align-items-center">
+                        <label for="lessonstudy-timeInput" class="form-label mb-0 me-1">Uhrzeit der Beobachtung</label>
+                        <span class="lessonstudy-help" tabindex="0" role="button" aria-label="Hilfe: Uhrzeit">
+                            <i class="fa-solid fa-circle-question"></i>
+                            <span class="lessonstudy-helpbubble">Format HH:MM – die aktuelle Uhrzeit ist bereits voreingestellt.</span>
+                        </span>
+                    </div>
                     <input type="text" id="lessonstudy-timeInput" class="form-control" placeholder="z. B. 09:15">
                 </div>
                 <div class="mb-3">
-                    <label for="lessonstudy-engagementSlider" class="form-label">Engagement der Lerngruppe (0–100 %)</label>
+                    <div class="d-flex align-items-center">
+                        <label for="lessonstudy-engagementSlider" class="form-label mb-0 me-1">Engagement der Lerngruppe</label>
+                        <span class="lessonstudy-help" tabindex="0" role="button" aria-label="Hilfe: Engagement">
+                            <i class="fa-solid fa-circle-question"></i>
+                            <span class="lessonstudy-helpbubble">Schätzung des Lernengagements: 0–20 % abgelenkt, 40–60 % wechselhaft, 80–100 % voll präsent.</span>
+                        </span>
+                    </div>
                     <div class="d-flex align-items-center">
                         <input type="range" class="form-range me-3" min="0" max="100" step="10" id="lessonstudy-engagementSlider">
                         <span id="lessonstudy-engagementValue" class="lessonstudy-sliderValue">50</span> %
                     </div>
                 </div>
                 <div class="mb-0">
-                    <label for="lessonstudy-textInput" class="form-label">Notiz zur Beobachtung (optional)</label>
+                    <div class="d-flex align-items-center">
+                        <label for="lessonstudy-textInput" class="form-label mb-0 me-1">Notiz zur Beobachtung</label>
+                        <span class="lessonstudy-help" tabindex="0" role="button" aria-label="Hilfe: Notiz">
+                            <i class="fa-solid fa-circle-question"></i>
+                            <span class="lessonstudy-helpbubble">Konkret und beobachtbar beschreiben – nicht deuten oder bewerten.</span>
+                        </span>
+                    </div>
                     <textarea id="lessonstudy-textInput" class="form-control" rows="5"></textarea>
                 </div>
             </div>
