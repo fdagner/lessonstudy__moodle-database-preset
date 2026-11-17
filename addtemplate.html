@@ -162,6 +162,24 @@
         }
     }
 
+    // ---------- Hilfefragezeichen: auf Touch durch Tipp-Toggle zuverlässig öffnen/schließen ----------
+    document.querySelectorAll('.lessonstudy-help').forEach(help => {
+        help.addEventListener('click', e => {
+            e.stopPropagation();
+            const wasOpen = help.classList.contains('lessonstudy-open');
+            document.querySelectorAll('.lessonstudy-help.lessonstudy-open').forEach(open => open.classList.remove('lessonstudy-open'));
+            if (!wasOpen) { help.classList.add('lessonstudy-open'); }
+        });
+    });
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.lessonstudy-help.lessonstudy-open').forEach(open => open.classList.remove('lessonstudy-open'));
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.lessonstudy-help.lessonstudy-open').forEach(open => open.classList.remove('lessonstudy-open'));
+        }
+    });
+
     // ---------- Draft-Speicher (localStorage) ----------
     const pageParams = new URLSearchParams(location.search);
     const draftBase = pageParams.get('rid') ? 'r' + pageParams.get('rid') : 'd' + (pageParams.get('d') || 'x');

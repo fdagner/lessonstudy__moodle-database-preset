@@ -69,7 +69,8 @@
 }
 
 .lessonstudy-help:hover .lessonstudy-helpbubble,
-.lessonstudy-help:focus .lessonstudy-helpbubble { display: block; }
+.lessonstudy-help:focus .lessonstudy-helpbubble,
+.lessonstudy-help.lessonstudy-open .lessonstudy-helpbubble { display: block; }
 
 /* Kopfbereich: Name + Farbe */
 .lessonstudy-header {
