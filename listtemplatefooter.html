@@ -58,15 +58,23 @@
     }
 
     // ---------- Einträge aus der Tabelle sammeln ----------
+    // Fallback-Farben für Einträge ohne gespeicherte Farbe (z. B. ältere Datensätze)
+    const fallbackColors = ['#0d6efd', '#dc3545', '#198754', '#fd7e14', '#6f42c1', '#20c997'];
+
     const groups = [];
     document.querySelectorAll('#lessonstudy-entryTableBody tr').forEach(row => {
         const nameCell = row.querySelector('td:nth-child(1)');
         const colorCell = row.querySelector('td:nth-child(2) code');
         const jsonSpan = row.querySelector('td:nth-child(3) span.lessonstudy-observation');
 
-        if (nameCell && colorCell && jsonSpan) {
+        if (nameCell && jsonSpan) {
             const name = nameCell.textContent.trim();
-            const color = colorCell.textContent.trim();
+            let color = colorCell ? colorCell.textContent.trim() : '';
+            if (!color) {
+                color = fallbackColors[groups.length % fallbackColors.length];
+                const swatch = row.querySelector('.lessonstudy-swatch');
+                if (swatch) { swatch.style.backgroundColor = color; }
+            }
             let observations = [];
             try {
                 const jsonText = jsonSpan.textContent.trim();

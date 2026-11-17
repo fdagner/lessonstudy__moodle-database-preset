@@ -1,4 +1,5 @@
 <div id="lessonstudy-importarea" hidden>[[json]]</div>
+<div id="lessonstudy-colordata" hidden>[[color]]</div>
 
 <div class="lessonstudy-container">
     ##actionsmenu##
@@ -118,6 +119,10 @@
 
     const tableBody = document.querySelector('#lessonstudy-observationTable tbody');
     const noDataMsg = document.getElementById('lessonstudy-noData');
+
+    // Farbe der Beobachtung (mit Fallback, falls keine gespeichert ist)
+    const colorData = document.getElementById('lessonstudy-colordata');
+    const recordColor = (colorData && colorData.textContent.trim()) || '#0d6efd';
 
     let observations = [];
     let expandedCluster = null;
@@ -241,7 +246,7 @@
             pointsGroup.appendChild(svgEl('line', {
                 x1: xScale(timeToMinutes(a.time)), y1: yScale(a.engagement),
                 x2: xScale(timeToMinutes(b.time)), y2: yScale(b.engagement),
-                stroke: '[[color]]', 'stroke-width': 2, 'stroke-dasharray': '6 4',
+                stroke: recordColor, 'stroke-width': 2, 'stroke-dasharray': '6 4',
                 opacity: 0.55, 'pointer-events': 'none'
             }));
         }
@@ -259,7 +264,7 @@
             const cy = yScale(first.engagement);
 
             if (indices.length === 1) {
-                const c = svgEl('circle', { cx, cy, r: 12, fill: '[[color]]', stroke: '#fff', 'stroke-width': 2 });
+                const c = svgEl('circle', { cx, cy, r: 12, fill: recordColor, stroke: '#fff', 'stroke-width': 2 });
                 c.style.cursor = 'pointer';
                 c.addEventListener('click', e => { e.stopPropagation(); openObservationModal(indices[0]); });
                 pointsGroup.appendChild(c);
@@ -285,7 +290,7 @@
                     const p = svgEl('circle', {
                         cx: cx + radius * Math.cos(angle),
                         cy: cy + radius * Math.sin(angle),
-                        r: 12, fill: '[[color]]', stroke: '#fff', 'stroke-width': 2, opacity: 0.95
+                        r: 12, fill: recordColor, stroke: '#fff', 'stroke-width': 2, opacity: 0.95
                     });
                     p.style.cursor = 'pointer';
                     p.addEventListener('click', ev => { ev.stopPropagation(); openObservationModal(idx); });
